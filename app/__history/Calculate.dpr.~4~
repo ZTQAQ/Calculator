@@ -1,0 +1,11 @@
+program Calculate;
+
+uses
+  Forms,
+  Main in 'C:\Users\zhutao\Documents\RAD Studio\Projects\Main.pas';
+
+begin
+  Calculate_Add;
+
+end.
+

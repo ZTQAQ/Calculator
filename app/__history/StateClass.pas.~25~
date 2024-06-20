@@ -1,0 +1,194 @@
+unit StateClass;
+
+interface
+
+uses
+  SysUtils, Stack, CalculatorClass;
+
+type
+
+  //数字状态类
+  TNumberState = class(TState)
+    procedure handleNumber(num: Integer); override;
+    procedure handleOperator(opr: Char); override;
+    procedure handleDecimalDot; override;
+    procedure handleResult(opr: Char); override;
+    procedure handleClear; override;
+    procedure handleBack; override;
+  end;
+  //运算符状态类
+  TOperatorState = class(TState)
+    procedure handleNumber(num: Integer); override;
+    procedure handleOperator(opr: Char); override;
+    procedure handleDecimalDot; override;
+  end;
+  //小数点状态类
+  TDecimalDotState = class(TState)
+    procedure handleNumber(num: Integer); override;
+  end;
+
+  //显示结果状态类
+  TResultState = class(TState)
+    procedure handleNumber(num: Integer); override;
+    procedure handleOperator(opr: Char); override;
+  end;
+
+  //清空状态类
+  TClearState = class(TState)
+    procedure handleNumber(num: Integer); override;
+  end;
+
+
+implementation
+
+//数字状态类
+procedure TNumberState.handleNumber(num: Integer);
+begin
+  with FOwner do
+  begin
+    buffer := buffer + IntToStr(num);
+    SetNewState(neNumberState);
+  end;
+end;
+
+//进行计算的逻辑，将此时栈里可以计算的全部计算
+procedure TNumberState.handleOperator(opr: Char);
+begin
+  with FOwner do
+  begin
+    NumberStack.Push(StrToFloat(buffer));
+    buffer := opr;              //delphi支持string:=char
+    RealCalculate(opr);
+    SetNewState(neOperatorState);
+  end;
+end;
+
+procedure TNumberState.handleBack;
+var
+  len: Integer;
+begin
+  with FOwner do
+  begin
+    len := Length(buffer);
+    buffer := Copy(buffer, 1, len-1);
+    len := Length(buffer);
+    if (len = 0) and (not(OperatorStack.isEmpty)) then
+      SetNewState(neOperatorState)
+    else
+    begin
+      if buffer[len-1] = '.' then
+        SetNewState(neDecimalDotState)
+      else
+        SetNewState(neNumberState)
+    end;
+  end;
+end;
+
+procedure TNumberState.handleClear;
+begin
+  inherited;
+  //FOwner.NumberStack.Clear;
+end;
+
+procedure TNumberState.handleDecimalDot;
+begin
+  with FOwner do
+  begin
+    buffer := buffer + '.';
+    SetNewState(neDecimalDotState);
+  end;
+end;
+
+//按了"等于"号,要切换到“等于显示结果”状态
+procedure TNumberState.handleResult(opr: Char);
+begin
+  with FOwner do
+  begin
+    NumberStack.Push(StrToFloat(buffer));
+    RealCalculate(opr);
+    buffer := '';
+    SetNewState(neResultState);
+  end;
+end;
+
+//运算符状态类
+procedure TOperatorState.handleNumber(num: Integer);
+begin
+  with FOwner do
+  begin
+    //OperatorStack.Push(Buffer[1]);
+    buffer := IntToStr(num)  ;
+    SetNewState(neNumberState);
+  end;
+end;
+
+//替换当前的符号
+procedure TOperatorState.handleOperator(opr: Char);
+begin
+  with FOwner do
+  begin
+    buffer := opr;
+    SetNewState(neOperatorState);
+  end;
+end;
+
+procedure TOperatorState.handleDecimalDot;
+begin
+  with FOwner do
+  begin
+    OperatorStack.Push(buffer[1]);
+    buffer := '.';
+    SetNewState(neDecimalDotState);
+  end;
+end;
+
+
+//小数点状态类
+procedure TDecimalDotState.handleNumber(num: Integer);
+begin
+  with FOwner do
+  begin
+    buffer := buffer + IntToStr(num);
+    SetNewState(neNumberState);
+  end;
+end;
+
+//“等于”结果显示类
+//“等于”状态虽然和运算符状态一样都是计算，但不同的地方是“等于状态”在输入数字时，
+//应该是用新的数字直接替换旧的数字
+
+procedure TResultState.handleNumber(num: Integer);
+begin
+  with FOwner do
+  begin
+    buffer := IntToStr(num);
+    SetNewState(neNumberState);
+  end;
+end;
+
+procedure TResultState.handleOperator(opr: Char);
+begin
+  with FOwner do
+  begin
+    NumberStack.Push(ResultNum);
+    Buffer := opr;
+    RealCalculate(opr);
+    SetNewState(neOperatorState);
+  end;
+
+end;
+
+
+
+
+//清屏状态类
+procedure TClearState.handleNumber(num: Integer);
+begin
+  with FOwner do
+  begin
+    buffer := buffer + IntToStr(num);
+    SetNewState(neNumberState);
+  end;
+end;
+
+end.

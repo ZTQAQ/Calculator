@@ -1,0 +1,60 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{1DEDFA86-B30C-4942-81DF-4780920A3D4E}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="package\Package.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="app\MyCalculate.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="app\Project5.dproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Default.Personality/>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="Package">
+			<MSBuild Projects="package\Package.dproj"/>
+		</Target>
+		<Target Name="Package:Clean">
+			<MSBuild Targets="Clean" Projects="package\Package.dproj"/>
+		</Target>
+		<Target Name="Package:Make">
+			<MSBuild Targets="Make" Projects="package\Package.dproj"/>
+		</Target>
+		<Target Name="MyCalculate">
+			<MSBuild Projects="app\MyCalculate.dproj"/>
+		</Target>
+		<Target Name="MyCalculate:Clean">
+			<MSBuild Targets="Clean" Projects="app\MyCalculate.dproj"/>
+		</Target>
+		<Target Name="MyCalculate:Make">
+			<MSBuild Targets="Make" Projects="app\MyCalculate.dproj"/>
+		</Target>
+		<Target Name="Project5">
+			<MSBuild Projects="app\Project5.dproj"/>
+		</Target>
+		<Target Name="Project5:Clean">
+			<MSBuild Targets="Clean" Projects="app\Project5.dproj"/>
+		</Target>
+		<Target Name="Project5:Make">
+			<MSBuild Targets="Make" Projects="app\Project5.dproj"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="Package;MyCalculate;Project5"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="Package:Clean;MyCalculate:Clean;Project5:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="Package:Make;MyCalculate:Make;Project5:Make"/>
+		</Target>
+		<Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+	</Project>

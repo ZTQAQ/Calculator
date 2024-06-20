@@ -1,0 +1,58 @@
+unit Main;
+
+interface
+uses
+  Unit1;
+function  Calculate(Strings: string): Real;
+procedure Input;
+
+implementation
+uses
+  Stack, SysUtils;
+var
+  Strings: string;
+  NumberStack: TNumberStack;
+  OperatorStack: TOperatorStack;
+
+
+function Calculate(Strings: string): Real;
+var
+  I: Integer;
+  Ch: Char;
+  j:Integer;
+  SubStr: string;
+  Num: Real;
+begin
+  j := 1;
+  for I := 1 to Length(Strings) do
+  begin
+    Ch := Strings[i];
+    if (Ch in ['+', '-', '*', '%', '(', ')']) or (i = Length(Strings)) then
+    begin
+      SubStr := Copy(Strings, j, i-j);
+      Num := StrToFloat(SubStr);
+      NumberStack.Push(Num);
+            j := i+1;
+      if OperatorStack.isEmpty then
+        OperatorStack.Push(Ch);
+
+
+
+    end;
+  end;
+end;
+
+
+/// <summary>  输入计算公式  /// </summary>
+procedure Input;
+begin
+  Write('请输入计算公式: ');
+  Readln(Strings);
+
+  Calculate(Strings);
+
+  Writeln(Strings);
+end;
+
+end.
+

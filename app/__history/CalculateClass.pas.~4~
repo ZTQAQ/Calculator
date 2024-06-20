@@ -1,0 +1,237 @@
+unit CalculateClass;
+//
+interface
+//
+//uses
+//  SysUtils, Stack;
+//
+//type
+//  //先声明计算机类，否则状态类的函数参数无法使用Calcutor类作为参数
+//  TCalculator = class;
+//  //状态基类
+//
+//  TState = class
+//    //在当前状态下即将要做的工作(同时也会发生状态改变)
+//    procedure handleNumber(var cal: TCalculator; num: Integer); virtual;
+//    procedure handleOperator(var cal: TCalculator; opr: Char); virtual;
+//    procedure handleDecimalDot(var cal: TCalculator); virtual;
+//    procedure handleResult(var cal: TCalculator); virtual;
+//    procedure handleClear(var cal: TCalculator); virtual;
+//  end;
+//  //数字状态类
+//
+//  TNumberState = class(TState)
+//    procedure handleNumber(var cal: TCalculator; num: Integer); override;
+//    procedure handleOperator(var cal: TCalculator; opr: Char); override;
+//    procedure handleDecimalDot(var cal: TCalculator); override;
+//    procedure handleResult(var cal: TCalculator); override;
+//  end;
+//  //运算符状态类
+//
+//  TOperatorState = class(TState)
+//    procedure handleNumber(var cal: TCalculator; num: Integer); override;
+//    procedure handleOperator(var cal: TCalculator; opr: Char); override;
+//    procedure handleDecimalDot(var cal: TCalculator); override;
+//  end;
+//  //小数点状态类
+//
+//  TDecimalDotState = class(TState)
+//    procedure handleNumber(var cal: TCalculator; num: Integer); override;
+//  end;
+//  //显示结果状态类
+//
+//  TResultState = class(TState)
+//    procedure handleNumber(var cal: TCalculator; num: Integer); override;
+//    procedure handleResult(var cal: TCalculator); override;
+//  end;
+//  //清空状态类
+//
+//  TClearState = class(TState)
+//    procedure handleClear(var cal: TCalculator); override;
+//  end;
+//
+//  TCalculator = class
+//  public
+//    buffer: string;
+//    NumberStack: TNumberStack;
+//    OperatorStack: TOperatorStack;
+//    ResultNum: Real;
+//      //成员状态
+//    NumberState: TNumberState;
+//    OperatorState: TOperatorState;
+//    DecimalDotState: TDecimalDotState;
+//    ResultState: TResultState;
+//    ClearState: TClearState;
+//      //当前状态
+//    MyState: TState;
+//    procedure SetMyState(NewState: TState);
+//    constructor Create;
+//    destructor Destroy; override;
+//    function CalculateResult: Real;
+//  end;
+//
+//implementation
+////状态基类
+//
+//procedure TState.handleNumber(var cal: TCalculator; num: Integer);
+//begin
+//
+//end;
+//
+//procedure TState.handleOperator;
+//begin
+//
+//end;
+//
+//procedure TState.handleDecimalDot(var cal: TCalculator);
+//begin
+//
+//end;
+//
+//procedure TState.handleResult(var cal: TCalculator);
+//begin
+//
+//end;
+//
+//procedure TState.handleClear(var cal: TCalculator);
+//begin
+//
+//end;
+//
+//
+////数字状态类
+//procedure TNumberState.handleNumber(var cal: TCalculator; num: Integer);
+//begin
+//  with cal do
+//  begin
+//    buffer := buffer + IntToStr(num);
+//    SetMyState(NumberState);
+//  end;
+//end;
+//
+//procedure TNumberState.handleOperator(var cal: TCalculator; opr: Char);
+//begin
+//  with cal do
+//  begin
+//    NumberStack.Push(StrToFloat(buffer));
+//    buffer := opr;
+//    SetMyState(OperatorState);
+//  end;
+//end;
+//
+//procedure TNumberState.handleDecimalDot(var cal: TCalculator);
+//begin
+//  with cal do
+//  begin
+//    buffer := buffer + '.';
+//    SetMyState(DecimalDotState);
+//  end;
+//end;
+//
+////按了"等于"号,要切换到“等于显示结果”状态
+//procedure TNumberState.handleResult(var cal: TCalculator);
+//begin
+//  with cal do
+//  begin
+//    CalculateResult;
+//    buffer := '';
+//    SetMyState(ResultState);
+//  end;
+//end;
+//
+////运算符状态类
+//procedure TOperatorState.handleNumber(var cal: TCalculator; num: Integer);
+//begin
+//  with cal do
+//  begin
+//    OperatorStack.Push(buffer);
+//    buffer := num;
+//    SetMyState(NumberState);
+//  end;
+//end;
+//
+////替换当前的符号
+//procedure TOperatorState.handleOperator(var cal: TCalculator; opr: Char);
+//begin
+//  with cal do
+//  begin
+//    buffer := opr;
+//    SetMyState(OperatorState);
+//  end;
+//end;
+//
+//procedure TOperatorState.handleDecimalDot(var cal: TCalculator);
+//begin
+//  with cal do
+//  begin
+//    OperatorStack.Push(buffer);
+//    buffer := '.';
+//    SetMyState(DecimalDotState);
+//  end;
+//end;
+//
+//
+////小数点状态类
+//procedure TDecimalDotState.handleNumber(var cal: TCalculator; num: Integer);
+//begin
+//  with cal do
+//  begin
+//    buffer := buffer + IntToStr(num);
+//    SetMyState(NumberState);
+//  end;
+//end;
+//
+////“等于”结果显示类
+//procedure TResultState.handleNumber(var cal: TCalculator; num: Integer);
+//begin
+//  with cal do
+//  begin
+//    buffer := buffer + IntToStr(num);
+//    SetMyState(NumberState);
+//  end;
+//end;
+//
+////计算机类
+//constructor TCalculator.Create;
+//begin
+//  NumberStack := TNumberStack.Create;
+//  OperatorStack := TOperatorStack.Create;
+//  buffer := '';
+//  ResultNum := 0;
+//end;
+//
+//destructor TCalculator.Destroy; override;
+//begin
+//  FreeAndNil(NumberStack);
+//  FreeAndNil(OperatorStack);
+//  FreeAndNil(NumberState);
+//  FreeAndNiL(OperatorState);
+//  FreeAndNil(ResultState);
+//  FreeAndNil(ClearState);
+//end;
+//
+//procedure TCalculator.SetMyState(NewState: TState);
+//begin
+//  MyState := NewState;
+//end;
+//
+//function TCalculator.CalculateResult: Real;
+//var
+//  num1, num2: Real;
+//  opr: Char;
+//begin
+//  num1 := NumberStack.Pop;
+//  num2 := NumberStack.Pop;
+//  opr := OperatorStack.Pop;
+//  if opr = '+' then
+//    Result := num1 + num2
+//  else if opr = '-' then
+//    Result := num2 - num1
+//  else if opr = '*' then
+//    Result := num2 * num1
+//  else
+//    Result := num2 / num1;
+//end;
+//
+end.
+

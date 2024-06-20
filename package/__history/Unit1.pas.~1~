@@ -1,0 +1,20 @@
+unit Unit1;
+
+interface
+function Add(var Num1, Num2: Integer): Integer;
+
+
+
+
+
+
+
+
+implementation
+function Add(Num1, Num2): Integer;
+begin
+  Writeln(Num1,'+',Num2,'=',Num1+Num2);
+end;
+
+
+end.

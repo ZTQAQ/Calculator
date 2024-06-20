@@ -1,0 +1,10 @@
+program Calculate;
+
+uses
+  Forms,
+  Main in 'Main.pas';
+
+begin
+  Calculate_Add;
+
+end.

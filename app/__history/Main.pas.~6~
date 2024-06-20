@@ -1,0 +1,119 @@
+unit Main;
+
+interface
+uses
+  Unit1;
+function  Calculate(Strings: string): Real;
+procedure Input;
+function  SymbolCompare(UpChar, DownChar: Char): Boolean;
+function  TwoNumberDeal(Num1, Num2: Real; Symbol: Char): Real;
+
+
+implementation
+uses
+  Stack, SysUtils;
+var
+  Strings: string;
+  NumberStack: TNumberStack;
+  OperatorStack: TOperatorStack;
+
+
+function Calculate(Strings: string): Real;
+var
+  I: Integer;
+  Ch, Symbol: Char;
+  j:Integer;
+  SubStr: string;
+  Num, Num1, Num2: Real;
+begin
+  j := 1;
+  for I := 1 to Length(Strings) do
+  begin
+    Ch := Strings[i];
+    if (Ch in ['+', '-', '*', '%', '(', ')']) then
+    begin
+      SubStr := Copy(Strings, j, i-j);
+      Num := StrToFloat(SubStr);
+      NumberStack.Push(Num);
+            j := i+1;
+      if (OperatorStack.isEmpty) or (Ch = '(') or (SymbolCompare(Ch, OperatorStack.Peek)) then
+        OperatorStack.Push(Ch)
+      else if SymbolCompare(Ch, OperatorStack.Peek) = False then
+      begin
+        while SymbolCompare(Ch, OperatorStack.Peek) = False do
+        begin
+          Num1 := NumberStack.Pop;
+          Num2 := NumberStack.Pop;
+          Symbol := OperatorStack.Pop;
+          NumberStack.Push(TwoNumberDeal(Num1, Num2, Symbol));
+        end;
+        OperatorStack.Push(Ch);
+      end
+      else if Ch = ')' then
+      begin
+        while OperatorStack.Pop <> ')' do
+        begin
+          Num1 := NumberStack.Pop;
+          Num2 := NumberStack.Pop;
+          Symbol := OperatorStack.Pop;
+          NumberStack.Push(TwoNumberDeal(Num1, Num2, Symbol));
+        end;
+      end;
+    end
+    else if I = Length(Strings) then
+    begin
+      SubStr := Copy(Strings, j, i-j);
+      Num := StrToFloat(SubStr);
+      NumberStack.Push(Num);
+      while not OperatorStack.isEmpty do
+      begin
+        Num1 := NumberStack.Pop;
+        Num2 := NumberStack.Pop;
+        Symbol := OperatorStack.Pop;
+        NumberStack.Push(TwoNumberDeal(Num1, Num2, Symbol));
+      end;
+    end;
+  end;
+  Result := NumberStack.Peek;
+end;
+
+
+function SymbolCompare(UpChar, DownChar: Char): Boolean;
+begin
+  if UpChar = '(' then
+    Exit(True)
+  else if ((UpChar = '*') or (UpChar = '/')) and ((DownChar = '+') or (DownChar = '-') or (DownChar = '('))  then
+    Exit(True)
+  else if ((UpChar = '+') or (UpChar = '-')) and (DownChar = '(') then
+    Exit(True)
+  else
+    Exit(False);
+end;
+
+function  TwoNumberDeal(Num1, Num2: Real; Symbol: Char): Real;
+begin
+  if Symbol = '+' then
+    Result := Num2 + Num1
+  else if Symbol = '-' then
+    Result := Num2 - Num1
+  else if Symbol = '*' then
+    Result := Num2 * Num1
+  else if Symbol = '/' then
+    Result := Num2 / Num1;
+end;
+
+
+
+/// <summary>  输入计算公式  /// </summary>
+procedure Input;
+begin
+  Write('请输入计算公式: ');
+  Readln(Strings);
+
+
+  Writeln(Strings,'结果是：',  Calculate(Strings));
+  Readln;
+end;
+
+end.
+

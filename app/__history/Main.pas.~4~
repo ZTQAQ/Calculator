@@ -1,0 +1,38 @@
+unit Main;
+
+interface
+uses
+  Unit1;
+
+type
+  NumStack = record
+    Num
+  
+procedure Calculate_Add;
+
+procedure Input;
+
+
+  
+
+implementation
+
+procedure Calculate_Add;
+begin
+  Add(1,3);
+end;
+
+
+/// <summary>  输入计算公式  /// </summary>
+procedure Input;
+var
+  Strings: string;
+begin
+  Write('请输入计算公式: ');
+  Readln(Strings);
+  Writeln(Strings);
+end;
+  end;
+
+end.
+

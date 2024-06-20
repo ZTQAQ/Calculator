@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2024/06/06 09:57:40.742.dproj,C:\Users\zhutao\Documents\RAD Studio\Projects\Package1.dproj=C:\Users\zhutao\Documents\RAD Studio\Projects\Package.dproj</Transaction>
+    <Transaction>2024/06/06 09:59:29.022.dproj,C:\Users\zhutao\Documents\RAD Studio\Projects\Package.dproj=D:\Calculater\package\Package.dproj</Transaction>
+    <Transaction>2024/06/11 13:56:32.520.pas,D:\Calculater\package\Unit1.pas=D:\Calculater\package\Stack.pas</Transaction>
+  </Transactions>
+</BorlandProject>

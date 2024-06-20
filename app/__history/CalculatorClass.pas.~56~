@@ -1,0 +1,308 @@
+unit CalculatorClass;
+
+interface
+
+uses
+  SysUtils, Stack;
+
+type
+  //先声明计算机类，否则状态类的函数参数无法使用Calcutor类作为参数
+  TCalculator = Class;
+
+  //状态基类
+  TState = class
+  //不能使用private，private只能用于当前类所在的文件
+  protected
+    FOwner: TCalCulator;
+  public
+    //在当前状态下即将要做的工作(同时也会发生状态改变)
+    procedure handleNumber(num: Integer); virtual;
+    procedure handleOperator(opr: Char); virtual;
+    procedure handleDecimalDot; virtual;
+    procedure handleBracket(opr: Char); virtual;
+    procedure handleResult(opr: Char); virtual;
+    procedure handleClear;
+    constructor Create(AOwner: TCalCulator); virtual;
+    procedure handleBack; virtual;
+  end;
+
+  //下一个状态，用于Calculator类中的SetNewState
+  NextState = (
+    neNumberState,
+    neOperatorState,
+    neDecimalDotState,
+    neResultState,
+    neClearState,
+    neBracketState
+  );
+
+
+  TCalculator = class
+  protected
+    FBuffer: string;
+    //成员状态
+    NumberState: TState;
+    OperatorState: TState;
+    DecimalDotState: TState;
+    ResultState: TState;
+    ClearState: TState;
+    BracketState: TState;
+    //当前状态
+    CurrentState:  TState;
+  public
+    Equation: string;      //提供给form访问的第一行显示式子
+    NumberStack: TNumberStack;
+    OperatorStack: TOperatorStack;
+    ResultNum: string;         //提供给form访问的第二行显示当前数字或者结果
+    BracketMatch: Integer;     //处理表达式的括号匹配，左括号+1，右括号-1
+    procedure SetNewState(NewState: NextState);
+    property Buffer: string read FBuffer write FBuffer;
+    constructor Create;
+    destructor Destroy; override;
+    //function CalculateResult: Real;
+    procedure RealCalculate(Ch: Char);
+    procedure ProcessEvent(AChar: Char);
+    //计算时判断符号优先级
+    function SymbolCompare(UpChar, DownChar: Char): Boolean;
+    function TwoNumberDeal(num1, num2: Real; symbol: Char): Real;
+  end;
+
+
+
+
+
+implementation
+
+uses
+  StateClass;
+
+
+//状态基类
+procedure TState.handleNumber(num: Integer);
+begin
+
+end;
+
+procedure TState.handleOperator;
+begin
+
+end;
+
+procedure TState.handleDecimalDot;
+begin
+
+end;
+
+procedure TState.handleBracket(opr: Char);
+begin
+
+end;
+
+procedure TState.handleResult(opr: Char);
+begin
+
+end;
+
+constructor TState.Create(AOwner: TCalCulator);
+begin
+  inherited Create;        //调用父亲的构造函数
+  FOwner := AOwner;
+end;
+
+procedure TState.handleBack;
+begin
+//这里不能直接删掉一位Equation的字符，因为如果此时字符为运算符，设置为不允许删除
+end;
+
+procedure TState.handleClear;
+begin
+  with FOwner do
+  begin
+    Equation := '';
+    buffer := '';
+    ResultNum := '0';
+    NumberStack.Clear;
+    OperatorStack.Clear;
+    SetNewState(neClearState);
+  end;
+end;
+
+
+
+//计算机类
+constructor TCalculator.Create;
+begin
+  inherited;
+  NumberStack := TNumberStack.Create;
+  OperatorStack := TOperatorStack.Create;
+  Equation := '';
+  buffer := '';
+  ResultNum := '0';
+  BracketMatch := 0;
+  NumberState := TNumberState.Create(Self);
+  OperatorState := TOperatorState.Create(Self);
+  DecimalDotState := TDecimalDotState.Create(Self);
+  BracketState := TBracketState.Create(Self);
+  ResultState := TResultState.Create(Self);
+  ClearState := TClearState.Create(Self);
+  CurrentState := ClearState;
+end;
+
+destructor TCalculator.Destroy;
+begin
+  FreeAndNil(NumberStack);
+  FreeAndNil(OperatorStack);
+  FreeAndNil(NumberState);
+  FreeAndNil(BracketState);
+  FreeAndNiL(OperatorState);
+  FreeAndNil(DecimalDotState);
+  FreeAndNil(ResultState);
+  FreeAndNil(ClearState);
+end;
+
+//接收从显示界面按钮控件传来的信号，在计算器内部进行相应的处理
+procedure TCalculator.ProcessEvent(AChar: Char);
+begin
+  if ('0' <= AChar) and (Achar <= '9') then
+    CurrentState.handleNumber(Ord(AChar)-Ord('0'))
+ // else if AChar in ['+', '-', '/', '*'] then
+  else if CharInSet(AChar, ['+', '-', '/', '*']) then
+
+    CurrentState.handleOperator(Achar)
+//  else if AChar in ['(', ')'] then
+  else if CharInSet(AChar, ['(', ')']) then
+    CurrentState.handleBracket(AChar)
+  else if AChar = '.' then
+    CurrentState.handleDecimalDot
+  else if AChar = '=' then
+    CurrentState.handleResult(AChar)
+  else if AChar = 'C' then
+    CurrentState.handleClear
+  else if AChar = 'B' then
+    CurrentState.handleBack;
+end;
+
+
+//从当前的状态在按一个按键之后，跳转到下一个状态
+procedure TCalculator.SetNewState(NewState: NextState);
+begin
+  case NewState of
+    neNumberState: CurrentState := NumberState;
+    neOperatorState: CurrentState := OperatorState;
+    neDecimalDotState: CurrentState := DecimalDotState;
+    neResultState: CurrentState := ResultState;
+    neClearState: CurrentState := ClearState;
+    neBracketState: CurrentState := BracketState;
+  end;
+end;
+
+
+//function TCalculator.CalculateResult: Real;
+//var
+//  num1, num2: Real;
+//  opr: Char;
+//begin
+//  num1 := NumberStack.Pop;
+//  num2 := NumberStack.Pop;
+//  opr := OperatorStack.Pop;
+//  if opr = '+' then
+//    Result := num1 + num2
+//  else if opr = '-' then
+//    Result := num2 - num1
+//  else if opr = '*' then
+//    Result := num2 * num1
+//  else
+//    Result := num2 / num1;
+//end;
+
+procedure TCalculator.RealCalculate(Ch: Char);
+var
+  Num1, Num2: Real;
+  Symbol: Char;
+begin
+    //如果符号栈为空或者想入栈的符号是'('，或者优先级大于 等于 栈顶的元素优先级
+    if (OperatorStack.isEmpty) or (Ch = '(') or (SymbolCompare(Ch, OperatorStack.Peek)) then
+      OperatorStack.Push(Ch)
+    //如果此时的符号为')'，直到左括号的元素都要出栈，最后入栈的元素是要显示出来在第二行的元素(Result)
+    else if Ch = ')' then
+    begin
+      while OperatorStack.Peek <> '(' do
+      begin
+        Num1 := NumberStack.Pop;
+        Num2 := NumberStack.Pop;
+        Symbol := OperatorStack.Pop;
+        NumberStack.Push(TwoNumberDeal(Num1, Num2, Symbol));
+      end;
+      OperatorStack.Pop;     //左括号出栈
+    end
+    //如果此时想入栈的符号优先级小于  栈顶里的符号的优先级
+    else if SymbolCompare(Ch, OperatorStack.Peek) = False then
+    begin
+      while (not OperatorStack.isEmpty) and (SymbolCompare(Ch, OperatorStack.Peek) = False) do
+      begin
+        //用于处理(1+3=的输入
+        if OperatorStack.Peek = '(' then
+        begin
+          OperatorStack.Pop;
+          Dec(BracketMatch);
+          if (BracketMatch <= 0) or OperatorStack.isEmpty then
+            Exit;
+        end;
+        Num1 := NumberStack.Pop;
+        Num2 := NumberStack.Pop;
+        Symbol := OperatorStack.Pop;
+        ResultNum := FloatToStr(TwoNumberDeal(Num1, Num2, Symbol));
+        if (Ch =  '=') and (OperatorStack.isEmpty) then            //是‘=‘的话再额外处理
+          Exit;
+        NumberStack.Push(StrToFloat(ResultNum));
+      end;
+      if Ch <> '=' then
+        OperatorStack.Push(Ch);
+    end;
+    ResultNum := FloatToStr(NumberStack.Peek);
+end;
+
+
+function TCalculator.SymbolCompare(UpChar, DownChar: Char): Boolean;
+
+//var
+//  upCharLevel, DownCharLevel: Integer;
+//
+//  function GetCharLevel(C: Char): Integer;
+//  begin
+//    if C in ['+', '-'] then
+//      Result := 1;
+//    if C in ['*', '/'] then
+//      Result := 2;
+//    if C = '(' then
+//      Result := 0;
+//  end;
+
+begin
+//  UpCharLevel := GetCharLevel(UpChar)
+//  DownCharLevel := GetCharLevel(DownChar);
+
+  if UpChar = '(' then
+    Exit(True)
+  else if ((UpChar = '*') or (UpChar = '/')) and ((DownChar = '+') or (DownChar = '-') or (DownChar = '('))  then
+    Exit(True)
+  else if ((UpChar = '+') or (UpChar = '-')) and (DownChar = '(') then
+    Exit(True)
+
+  else
+    Exit(False);
+end;
+
+function TCalculator.TwoNumberDeal(Num1, Num2: Real; Symbol: Char): Real;
+begin
+  if Symbol = '+' then
+    Result := Num2 + Num1
+  else if Symbol = '-' then
+    Result := Num2 - Num1
+  else if Symbol = '*' then
+    Result := Num2 * Num1
+  else if Symbol = '/' then
+    Result := Num2 / Num1;
+end;
+
+end.

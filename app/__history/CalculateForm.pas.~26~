@@ -1,0 +1,123 @@
+unit CalculateForm;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ComCtrls, CalculatorClass, Generics.Collections;
+
+type
+  TForm2 = class(TForm)
+    Btn0: TButton;
+    Btn1: TButton;
+    Btn2: TButton;
+    Btn3: TButton;
+    Btn4: TButton;
+    Btn5: TButton;
+    Btn6: TButton;
+    Btn7: TButton;
+    Btn8: TButton;
+    Btn9: TButton;
+    BtnAdd: TButton;
+    BtnSub: TButton;
+    BtnMul: TButton;
+    BtnDiv: TButton;
+    BtnRes: TButton;
+    BtnClear: TButton;
+    BtnDot: TButton;
+    BtnBack: TButton;
+    RedtContent: TRichEdit;
+    BtnLeft: TButton;
+    BtnRight: TButton;
+    procedure ButtonClick(Sender: TObject);
+    // ButtonClickConvey:Char;
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+
+  private
+    { Private declarations }
+    MyCalculator: TCalculator;
+    BtnDictionary: TDictionary<TButton, Char>;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form2: TForm2;
+
+implementation
+
+{$R *.dfm}
+
+
+
+procedure TForm2.FormCreate(Sender: TObject);
+var
+  I: Integer;
+begin
+  //Todo 綁定他們的對應關係
+  MyCalculator := TCalculator.Create;;
+  RedtContent.Lines.Add('');      // 第一行显示式子
+  RedtContent.Lines.Add('');      // 第二行显示输入和结果
+  RedtContent.Lines[1] := MyCalculator.ResultNum;
+//  for I := 0 to 9 do
+//  begin
+//    TForm2(FindComponent('Btn' + IntToStr(i))).OnClick := ButtonClick;
+//  end;
+
+end;
+
+procedure TForm2.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(MyCalculator);
+end;
+
+
+procedure TForm2.ButtonClick(Sender: TObject);
+var
+  ch: Char;
+begin
+  if Sender is TButton then
+  begin
+    ch := TButton(Sender).Caption[1];
+    // 处理计算器内部工作逻辑
+    MyCalculator.ProcessEvent(ch);
+
+    RedtContent.Lines[0] := MyCalculator.Equation;
+    RedtContent.Lines[1] := MyCalculator.ResultNum;
+
+
+//    if ch = 'C' then
+//      RedtContent.Clear               //处理显示在屏幕上的逻辑
+//    else if ch = 'B' then
+//      RedtContent.Lines[0] := Copy(RedtContent.Lines[0], 1, Length(RedtContent.Lines[0])-1)
+//    else
+//    begin
+//    if Mark = True then
+//    begin
+//       RedtContent.Lines[0] := ch;
+//       Mark := False;
+//    end
+//    else
+//      begin
+//        RedtContent.Lines[0] := RedtContent.Lines[0] + ch;
+//        RedtContent.Lines[1] := FloatToStr(MyCalculator.ResultNum);
+//        if ch in ['-', '+', '/', '*'] then
+//          RedtContent.Lines[1] := FloatToStr(MyCalculator.ResultNum)
+//        else if ch = '=' then
+//        begin
+//          Mark := True;
+//          //RedtContent.Lines[1] := FloatToStr(MyCalculator.ResultNum);
+//          RedtContent.Lines[1] := FloatToStr(MyCalculator.ResultNum);
+//          RedtContent.Lines[0] := FloatToStr(MyCalculator.ResultNum);
+//          //问题，=之后第一行显示的结果变成15，按3，想要直接变成3，但显示153
+//        end;
+//      end;
+//    end;
+  end;
+end;
+
+
+
+
+end.

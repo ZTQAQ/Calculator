@@ -1,0 +1,18 @@
+program Calculate;
+
+{$APPTYPE CONSOLE}
+
+uses
+  SysUtils,
+  Main in 'Main.pas';
+
+begin
+  Calculate_Add;
+
+  Input;
+
+  Readln;
+
+
+end.
+

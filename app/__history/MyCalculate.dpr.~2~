@@ -1,0 +1,19 @@
+program MyCalculate;
+
+{$APPTYPE CONSOLE}
+
+uses
+  SysUtils,
+  CalculatorClass in 'CalculatorClass.pas',
+  CalculateForm in 'CalculateForm.pas' {Form2},
+  StateClass in 'StateClass.pas',
+  CalculateClass in 'CalculateClass.pas';
+
+begin
+  try
+    { TODO -oUser -cConsole Main : Insert code here }
+  except
+    on E: Exception do
+      Writeln(E.ClassName, ': ', E.Message);
+  end;
+end.

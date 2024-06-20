@@ -1,0 +1,18 @@
+program Calculate;
+
+{$APPTYPE CONSOLE}
+
+uses
+  SysUtils,
+  Main in 'Main.pas',
+  Stack in 'Stack.pas';
+
+begin
+
+  Input;
+
+  Readln;
+
+
+end.
+

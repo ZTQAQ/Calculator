@@ -1,0 +1,495 @@
+unit StateClass;
+
+interface
+
+uses
+  SysUtils, Stack, CalculatorClass;
+
+type
+
+  //数字状态类
+  TNumberState = class(TState)
+    procedure handleNumber(num: Integer); override;
+    procedure handleOperator(opr: Char); override;
+    procedure handleDecimalDot; override;
+    procedure handleBracket(opr: Char); override;
+    procedure handleResult(opr: Char); override;
+    procedure handleClear;
+    procedure handleBack; override;
+  end;
+  //运算符状态类
+  TOperatorState = class(TState)
+    procedure handleNumber(num: Integer); override;
+    procedure handleOperator(opr: Char); override;
+    procedure handleDecimalDot; override;
+    procedure handleBracket(opr: Char); override;
+//    procedure handleBack; override;
+  end;
+  //小数点状态类
+  TDecimalDotState = class(TState)
+    procedure handleNumber(num: Integer); override;
+    procedure handleOperator(opr: Char); override;
+    procedure handleBack; override;
+  end;
+
+  //括号状态类
+  TBracketState = class(TState)
+    procedure handleNumber(num: Integer); override;
+    procedure handleOperator(opr: Char); override;
+    procedure handleDecimalDot; override;
+    procedure handleBracket(opr: Char); override;
+    procedure handleResult(opr: Char); override;
+    procedure handleBack; override;
+  end;
+
+  //显示结果状态类
+  TResultState = class(TState)
+    procedure handleNumber(num: Integer); override;
+    procedure handleOperator(opr: Char); override;
+    procedure handleDecimalDot; override;
+    procedure handleBracket(opr: Char); override;
+    procedure handleBack; override;
+    procedure handleClear;
+  end;
+
+  //清空状态类
+  TClearState = class(TState)
+    procedure handleNumber(num: Integer); override;
+    procedure handleDecimalDot; override;
+    procedure handleBracket(opr: Char); override;
+    procedure handleBack; override;
+  end;
+
+
+implementation
+
+//数字状态类
+procedure TNumberState.handleNumber(num: Integer);
+begin
+  with FOwner do
+  begin
+    Equation := Equation + IntToStr(num);
+    buffer := buffer + IntToStr(num);
+    ResultNum := buffer;
+    SetNewState(neNumberState);
+  end;
+end;
+
+//进行计算的逻辑，将此时栈里可以计算的全部计算
+procedure TNumberState.handleOperator(opr: Char);
+begin
+  with FOwner do
+  begin
+    Equation := Equation + opr;
+    NumberStack.Push(StrToFloat(buffer));
+    buffer := opr;              //delphi支持string:=char
+    RealCalculate(opr);
+    SetNewState(neOperatorState);
+  end;
+end;
+
+procedure TNumberState.handleBack;
+var
+  len: Integer;
+begin
+  inherited;
+  with FOwner do
+  begin
+    Equation := Copy(Equation, 1, Length(Equation)-1);
+    len := Length(buffer);
+    buffer := Copy(buffer, 1, len-1);
+    ResultNum := buffer;
+    len := Length(buffer);
+    //整个式子为空
+    if Equation = '' then
+      SetNewState(neClearState)
+    //当前的数为空，并且前面有运算符
+    else if (len = 0) and (not(OperatorStack.isEmpty)) and (OperatorStack.Peek = '(') then
+    begin
+      buffer := '(';     //帮助删去(
+      SetNewState(neBracketState);
+    end
+    else if (len = 0) and (not(OperatorStack.isEmpty)) and (OperatorStack.Peek <> '(') then
+    begin
+      buffer := OperatorStack.peek;
+      SetNewState(neOperatorState);
+    end
+    //当前的数不为空，前面还有数字或者小数点
+    else
+    begin
+      if buffer[len] = '.' then
+        SetNewState(neDecimalDotState)
+      else
+        SetNewState(neNumberState)
+    end;
+  end;
+end;
+
+//数字后只能加右括号
+procedure TNumberState.handleBracket(opr: Char);
+begin
+  inherited;
+  with FOwner do
+  begin
+    if opr = ')' then
+    begin
+      Equation := Equation + opr;
+
+      NumberStack.Push(StrToFloat(buffer));
+      buffer := opr;
+      RealCalculate(opr);
+      SetNewState(neBracketState);
+    end;
+  end;
+
+end;
+
+procedure TNumberState.handleClear;
+begin
+  inherited;
+  //FOwner.NumberStack.Clear;
+end;
+
+procedure TNumberState.handleDecimalDot;
+var
+  i: Integer;
+begin
+  with FOwner do
+  begin
+    for i := 1 to Length(buffer) do
+      if buffer[i] = '.' then
+        Exit;                         //控制不输出第二个小数点
+    Equation := Equation + '.';
+    buffer := buffer + '.';
+    ResultNum := buffer;
+    SetNewState(neDecimalDotState);
+  end;
+end;
+
+//按了"等于"号,要切换到“等于显示结果”状态
+procedure TNumberState.handleResult(opr: Char);
+begin
+  with FOwner do
+  begin
+    NumberStack.Push(StrToFloat(buffer));
+    RealCalculate(opr);
+    buffer := '';
+    Equation := ResultNum;
+    SetNewState(neResultState);
+  end;
+end;
+
+//运算符状态类
+procedure TOperatorState.handleNumber(num: Integer);
+begin
+  with FOwner do
+  begin
+    Equation := Equation + IntToStr(num);
+    //OperatorStack.Push(Buffer[1]);
+    buffer := IntToStr(num)  ;
+    ResultNum := buffer;
+    SetNewState(neNumberState);
+  end;
+end;
+
+
+procedure TOperatorState.handleOperator(opr: Char);
+begin
+  with FOwner do
+  begin
+    //如果此时输入的opr符号优先级 大于等于 即将被替换的符号优先级
+    //1+8- *  变成（1+8）*
+    if SymbolCompare(opr,buffer[1]) then
+    begin
+        Equation := Copy(Equation, 1, Length(Equation)-1);
+        Equation := '(' + Equation + ')' + opr;
+    end
+    else
+    begin
+      Equation[length(Equation)] := opr;
+    end;
+    OperatorStack.Pop;
+    buffer := opr;
+    RealCalculate(opr);
+    SetNewState(neOperatorState);
+
+  end;
+end;
+
+//运算符后只能加左括号
+procedure TOperatorState.handleBracket(opr: Char);
+begin
+  with FOwner do
+  begin
+    if opr = '(' then
+    begin
+      Equation := Equation + opr;
+      Inc(BracketMatch);
+      buffer := opr;              //delphi支持string:=char
+      OperatorStack.Push(opr);
+      SetNewState(neBracketState);
+    end;
+  end;
+end;
+
+procedure TOperatorState.handleDecimalDot;
+begin
+  with FOwner do
+  begin
+    Equation := Equation + '0.';
+    //这里添加0的话，可以在小数点状态转换到运算符状态时，有一个0*num的正确计算
+    buffer := '0.';
+    ResultNum := buffer;
+    SetNewState(neDecimalDotState);
+  end;
+end;
+
+
+//小数点状态类
+procedure TDecimalDotState.handleNumber(num: Integer);
+begin
+  with FOwner do
+  begin
+    Equation := Equation + IntToStr(num);
+    buffer := buffer + IntToStr(num);
+    ResultNum := buffer;
+    SetNewState(neNumberState);
+  end;
+end;
+
+procedure TDecimalDotState.handleOperator(opr: Char);
+begin
+  with FOwner do
+  begin
+    Equation := Copy(Equation, 1, Length(Equation)-1);
+    Equation := Equation + opr;
+    NumberStack.Push(StrToFloat(buffer));
+    buffer := opr;
+    RealCalculate(opr);
+    SetNewState(neOperatorState);
+  end;
+end;
+
+procedure TDecimalDotState.handleBack;
+begin
+  inherited;
+  with FOwner do
+  begin
+    Equation := Copy(Equation, 1, Length(Equation)-1);
+    //如果式子为空
+    if Equation = '' then
+      SetNewState(neClearState)
+    //前面是一个数字，不可能是运算符，因为我们加了0
+    else
+    buffer := copy(buffer, 1, Length(buffer)-1);
+    ResultNum := buffer;
+    SetNewState(neNumberState);
+  end;
+end;
+
+//括号状态类
+procedure TBracketState.handleNumber(num: Integer);
+begin
+  with FOwner do
+  begin
+    Equation := Equation + IntToStr(num);
+    buffer := IntToStr(num);
+    ResultNum := buffer;
+    SetNewState(neNumberState);
+  end;
+end;
+
+procedure TBracketState.handleOperator(opr: Char);
+begin
+  with FOwner do
+  begin
+    if buffer = ')' then
+    begin
+      Equation := Equation + opr;
+      buffer := opr;
+      RealCalculate(opr);
+      SetNewState(neOperatorState);
+    end;
+  end;
+end;
+
+procedure TBracketState.handleDecimalDot;
+begin
+  with FOwner do
+  begin
+    Equation := Equation + '0.';
+    buffer := '0.';
+    ResultNum := buffer;
+    SetNewState(neDecimalDotState);
+  end;
+end;
+
+procedure TBracketState.handleBracket(opr: Char);
+begin
+  with FOwner do
+  begin
+    if (opr = ')') and (buffer = '(') then
+    begin
+      handleBack;
+    end
+    else if (opr = '(') and (buffer = '(') then
+    begin
+      Equation := Equation + opr;
+      OperatorStack.push(opr);
+      buffer := opr;
+      SetNewState(neBracketState);
+    end
+    else if opr = ')' then
+    begin
+      Equation := Equation + opr;
+      Buffer := ')';
+      RealCalculate(opr);
+      SetNewState(neBracketState);
+    end;
+  end;
+
+end;
+
+procedure TBracketState.handleResult(opr: Char);
+begin
+  with FOwner do
+  begin
+    RealCalculate(opr);
+    buffer := '';
+    Equation := ResultNum;
+    SetNewState(neResultState);
+  end;
+end;
+
+procedure TBracketState.handleBack;
+begin
+  with FOwner do
+  begin
+    if buffer ='(' then
+    begin
+      Equation := Copy(Equation, 1, Length(Equation)-1);
+      OperatorStack.Pop;
+      if not(OperatorStack.isEmpty) then
+        SetNewState(neOperatorState)
+      else
+        SetNewState(neClearState);
+    end;
+
+  end;
+
+end;
+
+//“等于”结果显示类
+//“等于”状态虽然和运算符状态一样都是计算，但不同的地方是“等于状态”在输入数字时，
+//应该是用新的数字直接替换旧的数字
+procedure TResultState.handleNumber(num: Integer);
+begin
+  with FOwner do
+  begin
+    Equation := IntToStr(num);
+    buffer := IntToStr(num);
+    ResultNum := buffer;
+    SetNewState(neNumberState);
+  end;
+end;
+
+procedure TResultState.handleOperator(opr: Char);
+begin
+  with FOwner do
+  begin
+    Equation := Equation + opr;
+    NumberStack.Push(StrToFloat(ResultNum));
+    Buffer := opr;
+    RealCalculate(opr);
+    SetNewState(neOperatorState);
+  end;
+end;
+
+procedure TResultState.handleDecimalDot;
+begin
+  with FOwner do
+  begin
+    Equation := '0.';
+    buffer := '0.';
+    ResultNum := buffer;
+    SetNewState(neDecimalDotState);
+  end;
+end;
+
+procedure TResultState.handleBracket(opr: Char);
+begin
+  with FOwner do
+  begin
+    if opr = '(' then
+      OperatorStack.Push(opr);
+      Equation := opr;
+      Inc(BracketMatch);
+      buffer :=  '';
+      ResultNum := '';
+      SetNewState(neBracketState);
+  end;
+end;
+
+procedure TResultState.handleBack;
+begin
+  handleClear;
+end;
+
+procedure TResultState.handleClear;
+begin
+  inherited;
+
+end;
+
+
+
+//清屏状态类
+procedure TClearState.handleNumber(num: Integer);
+begin
+  with FOwner do
+  begin
+    Equation := IntToStr(num);
+    buffer := IntToStr(num);
+    ResultNum := buffer;
+    SetNewState(neNumberState);
+  end;
+end;
+
+procedure TClearState.handleBracket(opr: Char);
+begin
+  with FOwner do
+  begin
+    if opr = '(' then
+      OperatorStack.Push(opr);
+      Equation := opr;
+      Inc(BracketMatch);
+      buffer :=  opr;
+      SetNewState(neBracketState);
+  end;
+end;
+
+procedure TClearState.handleDecimalDot;
+begin
+  with FOwner do
+  begin
+    Equation := '0.';
+    buffer := '0.';
+    ResultNum := buffer;
+    SetNewState(neDecimalDotState);
+  end;
+end;
+
+procedure TClearState.handleBack;
+begin
+  with FOwner do
+  begin
+    Equation := '哎呦,你干嘛';
+    ResultNum := '';
+    SetNewState(neClearState);
+  end;
+end;
+
+
+
+end.
+
